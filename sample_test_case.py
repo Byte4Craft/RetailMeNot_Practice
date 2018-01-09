@@ -9,6 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 class RetailMeNotGenie(unittest.TestCase):
     """ Test class for the RetailMeNot Genie project"""
@@ -20,7 +21,7 @@ class RetailMeNotGenie(unittest.TestCase):
         chrome_options.add_extension('./RetailMeNot-Genie_v1.0.324.crx')
         self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
-    def test_bathandbodyworkscom(self):
+    def _test_bathandbodyworkscom(self):
         """Test www.bathandbodyworks.com website"""
 
         def genie_popup(timeout=10, popup_id="__genie_container"):
@@ -126,7 +127,7 @@ class RetailMeNotGenie(unittest.TestCase):
         driver.back()
 
         #Click on Core Soap $15
-        core_soap = driver.find_elements(By.CLASS_NAME, 'product-name')[20]
+        core_soap = driver.find_element(By.ID, 'e91cc9090c028a9c8ab9ff0d99')
         core_soap.click()
 
         #AddToBag
@@ -171,6 +172,100 @@ class RetailMeNotGenie(unittest.TestCase):
         self.assertEqual('DISCOVER20', code_applied)
         self.assertEqual(4.2, order_discount)
         self.assertEqual(25.07, new_order_total)
+
+    def test_competitivecyclistcom(self):
+
+        def genie_popup(timeout=10, popup_id="__genie_container"):
+            """
+            Returns the popup from the Genie extension
+
+            :param timeout: timeout while searching for the popup
+            :type timeout: int
+
+            :param popup_id: id of the popup to search for
+            :type popup_id: str
+
+            :return: Object, representing the popup or None
+            """
+
+            try:
+                WebDriverWait(driver, timeout).until(
+                    expected_conditions.presence_of_element_located((By.ID, popup_id)))
+                return driver.execute_script(
+                    'return document.querySelector("#{}").shadowRoot'.format(popup_id))
+            except TimeoutException:
+                pass #Logger? Console message?
+
+        genie_email='u201746@mvrht.net'
+        genie_password='12345678Aa'
+        driver = self.driver
+        driver.maximize_window()
+
+        driver.get("http://competitivecyclist.com/")
+
+        # Search for "pearl izumi"
+        search_field = driver.find_element(By.ID, 'search_term')
+        search_field.send_keys('pearl izumi')
+
+        # Click on "Pearl Izumi in Men's Clothing" link
+        WebDriverWait(driver, 5).until(expected_conditions.presence_of_element_located(
+            (By.PARTIAL_LINK_TEXT, 'pearl izumi in Men\'s')))
+        pearlizumi_link = driver.find_element(By.PARTIAL_LINK_TEXT, 'pearl izumi in Men\'s')
+        pearlizumi_link.click()
+
+        genieLogInPopup = genie_popup()
+        login_button = genieLogInPopup.find_element(By.CSS_SELECTOR, '.cbo-action-wrapper,.rmnGenie-button')
+        login_button.click()
+
+        # Switch to currently open tab
+        driver.switch_to_window(driver.window_handles[1])
+
+        # Click on the LogIn link
+        login_link = driver.find_element(By.LINK_TEXT, 'Log In')
+        login_link.click()
+
+        #Fill in the login fields
+        email_field = driver.find_element(By.ID, 'identifier')
+        password_field = driver.find_element(By.ID, 'password')
+        email_field.send_keys(genie_email)
+        password_field.send_keys(genie_password)
+        password_field.send_keys(Keys.RETURN)
+
+        # Click on "ELITE Escape Softshell Jacket - Men's" product
+        pearlizumi_elitesoftshell_product = driver.find_element(
+            By.PARTIAL_LINK_TEXT, 'ELITE Escape Softshell Jacket - Men\'s')
+        pearlizumi_elitesoftshell_product.click()
+
+        # Select size
+        size_select = ActionChains(driver)
+        size_select.move_to_element(
+            driver.find_element(By.ID, 'product-variant-select')).click().perform()
+        size_select.move_to_element(
+            driver.find_element(By.CLASS_NAME, 'qa-variant-item-3')).click().perform()
+
+        # Add item to cart
+        addtocart_button = driver.find_element(By.CLASS_NAME, 'add-to-cart-btn')
+        addtocart_button.click()
+
+        # Go to cart
+        header_cart_button = driver.find_element(By.CLASS_NAME, 'head-cart')
+        header_cart_button.click()
+
+        # Change quantity from 1 to 5
+        quantity_field = driver.find_element(By.CLASS_NAME, 'js-quantity-input')
+        quantity_field.clear()
+        quantity_field.send_keys('2')
+
+        # Recalculate order total
+        recalculate_button = driver.find_element(By.CLASS_NAME, 'recalculate-link')
+        recalculate_button.click()
+
+        # Proceed to checkout
+        proceedwithorder_button = driver.find_element(By.ID, 'proceed-to-checkout-bottom')
+        proceedwithorder_button.click()
+
+
+        pass
 
     def tearDown(self):
         self.driver.close()
