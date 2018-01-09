@@ -17,7 +17,7 @@ class RetailMeNotGenie(unittest.TestCase):
         """ Set up browser environment and install the Genie extension"""
 
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_extension('./RetailMeNot/RetailMeNot-Genie_v1.0.324.crx')
+        chrome_options.add_extension('./RetailMeNot-Genie_v1.0.324.crx')
         self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
     def test_bathandbodyworkscom(self):
@@ -171,7 +171,6 @@ class RetailMeNotGenie(unittest.TestCase):
         self.assertEqual('DISCOVER20', code_applied)
         self.assertEqual(4.2, order_discount)
         self.assertEqual(25.07, new_order_total)
-
 
     def tearDown(self):
         self.driver.close()
